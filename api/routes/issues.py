@@ -16,6 +16,7 @@ router = APIRouter(prefix="/issues", tags=["issues"])
 @router.post("", response_model=IssueResponse)
 async def submit_issue(
     req: IssueRequest,
+    tenant_id: str = Depends(require_api_key),   # ← 会调模型就必须先过鉴权
     checkpointer=Depends(get_checkpointer),   # 注入 lifespan 建好的共享资源
     store=Depends(get_store),
 ) -> IssueResponse:

@@ -16,6 +16,7 @@
 | 全链路可观测 | Prometheus 双 target 采集 + Grafana 三看板 + LangSmith 追踪 | 17 块指标板；100 并发压测 3360 请求 0 失败，看板与 locust 三方对账一致 |
 | 成本进血液 | 每次模型调用记 token/元，按档位打标签 | 单任务成本 0.0135 元（手算与埋点分毫不差），220 单累计 2.97 元 |
 | 弹性三件套 | 限流（租户分桶、Redis 共享、开关可控）+ 模型 fallback + Redis 幂等去重 | 限流 10/min 实测第 11 发 429；开关 false 后 288 发全放行 |
+| 花钱闸门 | 会调模型的端点（/issues /jobs /webhook/generic）一律要 X-API-Key；CORS 白名单可配；飞书回调验签+解密+比 token | 无 key/错 key 全 401（20 项鉴权用例 + 9 项飞书校验用例实测通过），401 不产生任何模型调用 |
 | 离线评测 | 沙箱 pytest 客观判分 + LLM-as-judge + 重复取均值 + 基线回归对比 | 执行类 0/1 判分 + AST 静态检查，开放题裁判打分，退化自动标警告 |
 
 ## 架构
@@ -97,6 +98,7 @@ DEVMATE_REDIS_URL=redis://localhost:6379/0
 # 网关：API key -> 租户映射（单行 JSON）
 DEVMATE_API_KEYS={"key-a":"tenant-a"}
 DEVMATE_RATELIMIT_ENABLED=true        # 压测时临时 false，压完必须改回
+DEVMATE_CORS_ALLOW_ORIGINS=http://localhost:8010,http://127.0.0.1:8010   # 别写 *
 
 # 可观测（LangSmith 官方键名，无需前缀）
 DEVMATE_LANGSMITH_TRACING=true
@@ -118,6 +120,13 @@ curl.exe -s http://localhost:8000/readyz    # {"status":"ready"}
 uv run python -m channels.cli --session demo "用一句话解释什么是反向代理"
 # 浏览器打开 web/index.html（或 uv run python -m http.server 8010 后访问 /web/index.html）
 ```
+
+> **哪些端点要带 `X-API-Key`**：`POST /issues`、`POST /issues/secure`、`POST /jobs`、
+> `POST /webhook/generic` —— 这四个都会调模型，没 key 一律 401，一次调用都不会发生。
+> `GET /healthz`、`/readyz`、`/metrics` 免鉴权（探针和 Prometheus 抓取用）。
+> `POST /webhook/feishu` 不收我们的 key（飞书不会带），改验飞书签名：配了
+> `DEVMATE_FEISHU_ENCRYPT_KEY` 才生效，长连接模式不经过这个端点。
+> CLI 与验证脚本默认自动取 `.env` 里第一个 key；Web 前端在页面里填一次即可（存 localStorage）。
 
 ### 5. 可观测栈（可选）
 
@@ -184,7 +193,7 @@ tests/ web/   pytest；零依赖单页前端
 4. agent_fallback_total 指标已注册未接线（库中间件内部行为，需包一层才能埋点）。
 5. POST /jobs 空 body 返回 500（req_body["text"] 直接下标），应为 422（缺 Pydantic 请求模型）。
 6. agent_queue_length 基线为 1 而非 0：arq cron 自我排期占队列槽位，属统计口径问题非故障。
-7. .env 中 DEVMATE_POSTGRES_URL 为无效键（字段名是 database_url），当前靠默认值生效。
+7. 飞书 Webhook 回调的验签依赖 DEVMATE_FEISHU_ENCRYPT_KEY；未配时该端点跳过验签（长连接模式不受影响）。公网部署 /webhook/feishu 必须先在飞书后台开启加密并配 key。
 
 ## 路线图
 

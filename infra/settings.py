@@ -88,11 +88,17 @@ class Settings(BaseSettings):
     sandbox_mem_limit: str = "512m"                 # 内存上限，防吃爆宿主内存
     sandbox_pids_limit: int = 256                   # 进程上限，防 fork 炸弹
     sandbox_cpus: str = "1.0"                       # CPU 上限，防一个任务占满 CPU
-    sandbox_pool_size: int = 4                      # 沙箱池并发上限（第 5 节）
+    sandbox_pool_size: int = 4                      # 沙箱池并发上限
 
     # ===== 并发与限流 =====
-    max_concurrent_llm: int = 8                     # LLM 并发调用上限（第 6 节）
+    max_concurrent_llm: int = 8                     # LLM 并发调用上限
     ratelimit_enabled: bool = True                  # 限流开关；压测时 .env 设 DEVMATE_RATELIMIT_ENABLED=false 关掉
+
+    # ===== 跨域 =====
+    # 逗号分隔的具体来源；默认只放行本机两个入口（file:// 打开的页面 origin 是
+    # "null"，浏览器不会带 Origin 头，所以不受这里限制）。
+    # 生产改成自己的前端域名，不要写 "*"——那等于允许任何网页驱动你的后端烧钱。
+    cors_allow_origins: str = "http://localhost:8010,http://127.0.0.1:8010"
 
     # ===== 运行 =====
     log_level: str = "INFO"

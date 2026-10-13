@@ -20,6 +20,7 @@ from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
 from infra.persistence import open_persistence
 from infra.redis import build_redis
+from infra.settings import get_settings
 from infra.logging import get_logger
 from profiles import register_all_profiles
 from api.schemas import HealthResponse
@@ -103,15 +104,19 @@ app.include_router(issues_router)
 app.include_router(webhook_router)      # 注册后才有 /webhook/feishu 与 /webhook/generic；不挂这行 -> 一律 404
 app.include_router(jobs_router)             # 注册后才有 POST /jobs 与 GET /jobs/{job_id}
 
-# 允许 Web 前端跨域调用（前端用 file:// 或不同端口打开时必须）。
-# ⚠ allow_origins=["*"] 只适用于本地开发；上生产必须收紧成具体前端地址，
-#   否则任何网页都能驱动你的后端（而 /webhook/generic 是无鉴权的）。
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],      # 开发期放开；生产应收紧到你的前端域名
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# 允许 Web 前端跨域调用。来源白名单从配置读（DEVMATE_CORS_ALLOW_ORIGINS，逗号分隔），
+# 默认只放行本机端口。⚠ 别图省事写 "*"：那等于允许任意网页驱动你的后端，
+#   再配上会调模型的端点，就是"别人开个网页就能花你的钱"。
+#   file:// 直接双击打开的页面 origin 为 null、不发 Origin 头，不受这里约束。
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        o.strip() for o in get_settings().cors_allow_origins.split(",") if o.strip()
+    ],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 
 # 统一异常处理：不把内部堆栈暴露给客户端

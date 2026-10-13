@@ -250,6 +250,9 @@
   <div class="server-input-wrapper">
     <input type="text" id="serverInput" placeholder="请输入后端 API 地址..." autocomplete="off">
   </div>
+  <div class="server-input-wrapper">
+    <input type="password" id="apiKeyInput" placeholder="API Key（DEVMATE_API_KEYS 里的一个）" autocomplete="off">
+  </div>
   <div class="server-presets" id="presets">
     <button class="preset-btn" data-url="http://localhost:8000">本地(8000)</button>
     <button class="preset-btn" data-url="http://127.0.0.1:18700">线上测试</button>
@@ -294,6 +297,15 @@
    ============================================================ */
 const serverInput = document.getElementById("serverInput");
 const presetsContainer = document.getElementById("presets");
+const apiKeyInput = document.getElementById("apiKeyInput");
+
+/* API Key：后端 /webhook/generic 已要求 X-API-Key，没 key 一律 401（不花一分钱）。 */
+let API_KEY = localS…ey") || "";
+apiKeyInput.value = API_KEY;
+apiKeyInput.addEventListener("input", () => {
+  API_KEY = apiKeyInput.value.trim();
+  localStorage.setItem("devmate_api_key", API_KEY);
+});
 
 let BACKEND = localStorage.getItem("devmate_backend_url") || "http://localhost:8000";
 serverInput.value = BACKEND;
@@ -472,7 +484,7 @@ async function tryStream(text, bubble){
   try {
     resp = await fetch(`${BACKEND}/chat/stream`, {
       method:"POST",
-      headers:{ "Content-Type":"application/json" },
+      headers:{ "Content-Type":"application/json", "X-API-Key": API_KEY },
       body: JSON.stringify({ text, source:"web", conversation_id: CONV_ID }),
     });
   } catch { return false; }
@@ -514,7 +526,7 @@ async function tryStream(text, bubble){
 async function fallbackRequest(text, bubble){
   const resp = await fetch(`${BACKEND}/webhook/generic`, {
     method:"POST",
-    headers:{ "Content-Type":"application/json" },
+    headers:{ "Content-Type":"application/json", "X-API-Key": API_KEY },
     body: JSON.stringify({ text, source:"web", conversation_id: CONV_ID }),
   });
   if (!resp.ok) throw new Error("HTTP " + resp.status);

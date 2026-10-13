@@ -50,3 +50,9 @@ obs = ["langsmith>=0.3.0", "prometheus-client>=0.20.0", "locust>=2.29.0"]
 # DevMate 是应用项目（不发布到 PyPI），不需要把自己打成包。
 # 设为非包项目：uv sync 只装依赖、不构建本项目本身。
 package = false
+
+[tool.pytest.ini_options]
+# 明确收集边界：只跑 tests/ 与 scripts/ 下的 test_*.py。
+# 不写这条的话 pytest 会递归扫到 work/（本地临时目录，已被 gitignore），
+# 把别人留下的测试也算进结果里。
+testpaths = ["tests", "scripts"]

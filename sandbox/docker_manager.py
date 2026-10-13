@@ -127,8 +127,8 @@ async def create_readonly_sandbox(source_sandbox: DockerSandbox) -> DockerSandbo
 
     实现：① 起一个新加固容器（工作目录仍是 tmpfs，此刻可写）；
          ② 从源容器把代码 cp 出来（读方向，不受 --read-only 限制）；
-         ③ 经宿主中转搬进新容器（★适配 1：不用 docker cp 拷入——那是实测过的
-            tmpfs 静默假成功坑，见第 12 节 bug 1/2，改走 exec 的 tar 管道）；
+         ③ 经宿主中转搬进新容器（★适配 1：不用 docker cp 拷入——实测过那是
+            tmpfs 静默假成功坑，改走 exec 的 tar 管道）；
          ④ chown root:root + chmod -R a-w（★适配 2：不 chown 的话文件属主是 1000，
             agent 自己一条 chmod +w 就把写位改回来了，只读形同虚设；
             属主改成 root 后，非 root 的 agent 无权改权限位）。

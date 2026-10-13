@@ -45,8 +45,8 @@ $PgName      = 'devmate-postgres'                         # -Recreate 时用的�
 $RedisName   = 'devmate-redis'
 $PgImage     = 'pgvector/pgvector:pg17'
 $RedisImage  = 'redis:7-alpine'
-$PgUser      = 'syc'                                  # -Recreate 建库时用；必须和 database_url 默认值一致
-$PgPass      = 'syc'
+$PgUser      = 'devmate'                              # -Recreate 建库时用；必须和 database_url 默认值一致
+$PgPass      = 'devmate'
 $PgDb        = 'devmate'
 # =========================================================
 
@@ -300,4 +300,4 @@ Write-Host '  跑队列   异步任务走 POST /jobs（需要 worker 窗口在�
 Write-Host ''
 Write-Host '  收工：API / worker / 飞书 各窗口按 Ctrl+C；容器可留着，要一起停就：' -ForegroundColor DarkGray
 Write-Host ("          docker stop {0} {1}" -f $PgName, $RedisName) -ForegroundColor DarkGray
-Write-Host '  提醒：/webhook/generic 无鉴权 + CORS 现在是 *，只适合本机开发，别挂公网。' -ForegroundColor DarkGray
+Write-Host '  提醒：会调模型的端点（/issues /jobs /webhook/generic）都要 X-API-Key；CORS 白名单见 DEVMATE_CORS_ALLOW_ORIGINS。' -ForegroundColor DarkGray

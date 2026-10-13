@@ -5,12 +5,21 @@
 import asyncio
 import httpx
 
+from infra.settings import get_settings
+
 BASE = "http://localhost:8000"
 
 
 async def main():
+    keys = list(get_settings().api_keys)
+    if not keys:
+        raise SystemExit("请先在 .env 配 DEVMATE_API_KEYS，否则 /jobs 一律 401")
+    H = {"X-API-Key": keys[0]}
     async with httpx.AsyncClient(timeout=300) as client:
-        r = await client.post(f"{BASE}/jobs", json={"text": "用一句话解释任务队列。", "user_id": "alice"})
+        r = await client.post(f"{BASE}/jobs", headers=H,
+                              json={"text": "用一句话解释任务队列。", "user_id": "alice"})
+        if r.status_code != 200:
+            print("提交失败：", r.status_code, r.text[:200]); return
         job_id = r.json()["job_id"]
         print("① 已提交，job_id =", job_id, "（服务秒级返回，执行在 worker 进程）")
         for i in range(60):
