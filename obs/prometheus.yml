@@ -1,0 +1,24 @@
+# obs/prometheus.yml —— Prometheus 抓取配置
+#
+# 两个抓取目标，少一个就有一半指标 no data：
+#   devmate-web    :8000 → HTTP RED + 模型/工具/限流/幂等（api/app.py 的 /metrics）
+#   devmate-worker :8002 → 任务耗时/排队等待/队列长度/沙箱（tasks/worker.py 的 start_http_server）
+# host.docker.internal 是 Docker Desktop 的"宿主后门"，容器里能解析到 Windows（已实测 getent）。
+
+global:
+  scrape_interval: 15s     # 每 15 秒来抄一次窗户（Grafana 图的分辨率上限就是这个数）
+  external_labels:
+    env: local
+
+scrape_configs:
+  - job_name: "devmate-web"
+    static_configs:
+      - targets: ["host.docker.internal:8000"]
+
+  - job_name: "devmate-worker"
+    static_configs:
+      - targets: ["host.docker.internal:8002"]
+
+  - job_name: "prometheus"        # 监控 Prometheus 自己，别删
+    static_configs:
+      - targets: ["localhost:9090"]
