@@ -1,0 +1,37 @@
+.venv/
+.env
+.env.*
+!.env.example
+logs/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.idea/
+dist/
+build/
+*.egg-info/
+
+# ===== 本地临时产物 / 隐私（2026-10-05 加，推仓库前必须排除）=====
+work/
+outputs/
+profiles/browser/
+*.log
+
+# ===== 个人学习/求职文档（非项目代码，不上公开仓库）=====
+AGENT_HANDOFF_*.md
+SESSION_NOTES_*.txt
+INTERVIEW_*.md
+INTERVIEW_*.bak-*
+*.bak-*
+语法卡表.md
+
+# ===== 讲解页 / 抓包探针（学习用一次性产物）=====
+explainer/
+explainer_v2/
+
+# ===== 杂项 =====
+temp_fix_git.sh
+.DS_Store
+Thumbs.db
