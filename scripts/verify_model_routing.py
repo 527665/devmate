@@ -5,7 +5,7 @@
 import asyncio
 
 from profiles import register_all_profiles
-from infra.llm_router import get_model, get_model_for_role, ROLE_TO_TIER
+from infra.llm_router import get_model_for_role, ROLE_TO_TIER
 from infra.settings import get_settings
 
 

@@ -1,5 +1,7 @@
 # DevMate
 
+![CI](https://github.com/527665/devmate/actions/workflows/ci.yml/badge.svg?branch=main)
+
 > 开源、可自部署、多模型路由、多渠道接入的 AI 研发助手：给它一个 Issue，它在 Docker 加固沙箱里读代码、改代码、跑测试，全程可观测、可评测、可限流、可回退。
 
 基于 DeepAgents + LangGraph 构建，覆盖「Agent Harness -> 服务化 -> 多渠道 -> 弹性 -> 可观测 -> 压测容量 -> 离线评测」的完整工程链路。本文档中所有性能数字均来自本机实测，非估算。

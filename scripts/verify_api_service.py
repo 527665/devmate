@@ -29,7 +29,8 @@ async def main():
             "user_id": "alice",
         })
         if r1.status_code != 200:
-            print("① 失败：", r1.status_code, r1.text[:200]); return
+            print("① 失败：", r1.status_code, r1.text[:200])
+            return
         d1 = r1.json()
         print("\n① 首次回复：", d1["reply"][:200])
         tid = d1["thread_id"]

@@ -1,0 +1,54 @@
+name: CI
+
+# 只做两件不花钱、不依赖外部服务的事：静态检查 + 离线单元测试。
+# 需要 Docker / Postgres / Redis / 真实模型 key 的验证脚本不在 CI 里跑
+# （那些是本机手动验证，见 scripts/ 下的 verify_* 与 test_*）。
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      # Settings.api_key 是必填字段，仓库里没有 .env，所以必须注入一个假值，
+      # 否则 import infra.settings 直接 ValidationError，pytest 一条都跑不起来。
+      # CI 不调模型，假值足够；真 key 永远不进这个仓库。
+      DEVMATE_API_KEY: dummy-for-ci
+      DEVMATE_MODEL_REASONING_EFFORT: low
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv (also provides the Python toolchain)
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+          enable-cache: true
+
+      - name: Pin Python 3.13
+        run: uv python install 3.13
+
+      - name: Sync dependencies
+        # obs 提供 prometheus_client（obs/metrics.py 顶层 import）
+        # mcp 提供 langchain_mcp_adapters（tools/mcp.py 顶层 import，无 try 兜底）
+        # serving 提供 slowapi / sse-starlette（api/app.py 网关链路）
+        # 只跑 `uv sync` 会 ModuleNotFoundError，这三组 extra 是实测最小集。
+        run: uv sync --extra obs --extra mcp --extra serving
+
+      - name: Lint (ruff)
+        # F=未用 import/未定义名等真错，E9=语法错，E4=import 位置，E7=语句写法。
+        # 全规则集在本仓库有 131 条风格噪音，所以 CI 只拦会炸的那几类。
+        run: uv tool run ruff check . --select F,E9,E4,E7
+
+      - name: Unit tests
+        # testpaths 已在 pyproject.toml 钉死为 tests/ 与 scripts/，不会误扫临时目录。
+        run: uv run pytest -q

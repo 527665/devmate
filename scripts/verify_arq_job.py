@@ -19,7 +19,8 @@ async def main():
         r = await client.post(f"{BASE}/jobs", headers=H,
                               json={"text": "用一句话解释任务队列。", "user_id": "alice"})
         if r.status_code != 200:
-            print("提交失败：", r.status_code, r.text[:200]); return
+            print("提交失败：", r.status_code, r.text[:200])
+            return
         job_id = r.json()["job_id"]
         print("① 已提交，job_id =", job_id, "（服务秒级返回，执行在 worker 进程）")
         for i in range(60):

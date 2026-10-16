@@ -9,7 +9,7 @@
 """
 import asyncio
 
-from sandbox.docker_manager import create_one_sandbox, seed_project, destroy_sandbox
+from sandbox.docker_manager import create_one_sandbox, destroy_sandbox
 
 
 async def main():

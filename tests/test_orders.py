@@ -1,6 +1,5 @@
 """订单接口单元测试。"""
 
-import pytest
 from decimal import Decimal
 from fastapi.testclient import TestClient
 

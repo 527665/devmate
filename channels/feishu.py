@@ -17,7 +17,6 @@ from lark_oapi.api.im.v1 import (
 )
 
 from channels.base import ChannelAdapter
-from channels.base import InboundMessage
 from infra.logging import get_logger
 from infra.settings import get_settings
 
